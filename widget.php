@@ -1,106 +1,155 @@
 <?php
-if (!defined('ABSPATH')) exit;
-
-class MVC_Video_Carousel extends \Elementor\Widget_Base {
-
-    public function get_name() { return 'rasta_video_carousel'; }
-    public function get_title() { return 'Rasta Video Carousel'; }
-    public function get_icon() { return 'eicon-slider-video'; }
-    public function get_categories() { return ['general']; }
-
-    protected function register_controls() {
-
-        $this->start_controls_section('content_section', [
-            'label' => 'Videos',
-        ]);
-
-        $repeater = new \Elementor\Repeater();
-
-        $repeater->add_control('video_url', [
-            'label' => 'Video URL',
-            'type' => \Elementor\Controls_Manager::TEXT,
-            'placeholder' => 'https://youtube.com/watch?v=xxxx',
-        ]);
-
-        $this->add_control('videos', [
-            'label' => 'Video List',
-            'type' => \Elementor\Controls_Manager::REPEATER,
-            'fields' => $repeater->get_controls(),
-            'title_field' => '{{{ video_url }}}',
-        ]);
-
-        $this->end_controls_section();
-    }
-
-    private function get_youtube_id($url) {
-
-    if (empty($url)) return '';
-
-    // Normalize URL
-    $url = trim($url);
-
-    // Handle youtu.be links
-    if (preg_match('/youtu\.be\/([a-zA-Z0-9_-]{11})/', $url, $match)) {
-        return $match[1];
-    }
-
-    // Handle shorts
-    if (preg_match('/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/', $url, $match)) {
-        return $match[1];
-    }
-
-    // Handle embed
-    if (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/', $url, $match)) {
-        return $match[1];
-    }
-
-    // Handle standard watch?v=
-    $query = parse_url($url, PHP_URL_QUERY);
-
-    if ($query) {
-        parse_str($query, $params);
-        if (!empty($params['v'])) {
-            return $params['v'];
-        }
-    }
-
-    return '';
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
-    protected function render() {
+class Rasta_Video_Carousel_Widget extends \Elementor\Widget_Base {
 
-        $settings = $this->get_settings_for_display();
-        if (empty($settings['videos'])) return;
+	public function get_name() {
+		return 'rasta_video_carousel';
+	}
 
-        $id = 'rasta-swiper-' . $this->get_id();
+	public function get_title() {
+		return esc_html__( 'Rasta Video Carousel', 'rasta' );
+	}
 
-        echo '<div class="mvc-swiper swiper" id="' . esc_attr($id) . '">';
-        echo '<div class="swiper-wrapper">';
+	public function get_icon() {
+		return 'eicon-media-carousel';
+	}
 
-        foreach ($settings['videos'] as $video) {
+	public function get_categories() {
+		return [ 'general' ];
+	}
 
-            $video_id = $this->get_youtube_id($video['video_url']);
-            $thumbnail = $video_id 
-                ? "https://img.youtube.com/vi/$video_id/hqdefault.jpg" 
-                : "";
+	public function get_script_depends() {
+		return [ 'rasta-carousel-script', 'swiper' ];
+	}
 
-            $embed_url = $video_id
-                ? "https://www.youtube.com/embed/$video_id?autoplay=1"
-                : esc_url($video['video_url']);
+	public function get_style_depends() {
+        // e-swiper forces Elementor's native Swiper CSS to load
+		return [ 'rasta-carousel-style', 'e-swiper' ];
+	}
 
-            echo '<div class="swiper-slide">';
-            echo '<div class="mvc-video" data-video="' . esc_attr($embed_url) . '">';
+	protected function register_controls() {
+		$this->start_controls_section(
+			'content_section',
+			[
+				'label' => esc_html__( 'Video Slides', 'rasta' ),
+				'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+			]
+		);
 
-            if ($thumbnail) {
-                echo '<img src="' . esc_url($thumbnail) . '" class="mvc-thumb" />';
-            }
+		$repeater = new \Elementor\Repeater();
 
-            echo '<div class="mvc-play-btn">▶</div>';
+		$repeater->add_control(
+			'video_title',
+			[
+				'label' => esc_html__( 'Title', 'rasta' ),
+				'type' => \Elementor\Controls_Manager::TEXT,
+				'default' => esc_html__( 'Video Title', 'rasta' ),
+			]
+		);
 
-            echo '</div>';
-            echo '</div>';
-        }
+		$repeater->add_control(
+			'video_url',
+			[
+				'label' => esc_html__( 'Video Link (YouTube/Vimeo)', 'rasta' ),
+				'type' => \Elementor\Controls_Manager::URL,
+				'placeholder' => esc_html__( 'https://youtube.com/...', 'rasta' ),
+				'default' => [
+					'url' => '',
+				],
+			]
+		);
 
-        echo '</div></div>';
-    }
+		$repeater->add_control(
+			'cover_image',
+			[
+				'label' => esc_html__( 'Custom Cover Image (Optional Fallback)', 'rasta' ),
+				'type' => \Elementor\Controls_Manager::MEDIA,
+				'default' => [
+					'url' => \Elementor\Utils::get_placeholder_image_src(),
+				],
+			]
+		);
+
+		$this->add_control(
+			'slides',
+			[
+				'label' => esc_html__( 'Carousel Items', 'rasta' ),
+				'type' => \Elementor\Controls_Manager::REPEATER,
+				'fields' => $repeater->get_controls(),
+				'default' => [
+					[ 'video_title' => esc_html__( 'Slide 1', 'rasta' ) ],
+					[ 'video_title' => esc_html__( 'Slide 2', 'rasta' ) ],
+					[ 'video_title' => esc_html__( 'Slide 3', 'rasta' ) ],
+				],
+				'title_field' => '{{{ video_title }}}',
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function render() {
+		$settings = $this->get_settings_for_display();
+		if ( empty( $settings['slides'] ) ) return;
+		?>
+		<div class="rasta-carousel-wrapper">
+			<div class="swiper rasta-main-swiper">
+				<div class="swiper-wrapper">
+					<?php foreach ( $settings['slides'] as $slide ) : 
+                        $video_url = !empty($slide['video_url']['url']) ? $slide['video_url']['url'] : '';
+                        $iframe_src = '';
+                        $thumb_url = '';
+
+                        // 1. Check for YouTube (Standard, Short, or Embed)
+                        if ( preg_match('%(?:youtube\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=|shorts/)|youtu\.be/)([^"&?/\s]{11})%i', $video_url, $match) ) {
+                            $yt_id = $match[1];
+                            $thumb_url = "https://img.youtube.com/vi/{$yt_id}/maxresdefault.jpg";
+                            $iframe_src = "https://www.youtube.com/embed/{$yt_id}?autoplay=1&rel=0&showinfo=0";
+                        } 
+                        // 2. Check for Vimeo
+                        elseif ( preg_match('/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)([0-9]+)/i', $video_url, $match) ) {
+                            $vimeo_id = $match[1];
+                            $thumb_url = !empty($slide['cover_image']['url']) ? $slide['cover_image']['url'] : \Elementor\Utils::get_placeholder_image_src();
+                            $iframe_src = "https://player.vimeo.com/video/{$vimeo_id}?autoplay=1";
+                        } 
+                        // 3. Fallback (Direct MP4 or Other)
+                        else {
+                            $thumb_url = !empty($slide['cover_image']['url']) ? $slide['cover_image']['url'] : \Elementor\Utils::get_placeholder_image_src();
+                            $iframe_src = $video_url; 
+                        }
+                    ?>
+						<div class="swiper-slide">
+                            <div class="rasta-video-card lazy-video-facade" data-iframe="<?php echo esc_url($iframe_src); ?>">
+                                <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $slide['video_title'] ); ?>" loading="lazy">
+                                <div class="play-btn"><i class="eicon-play"></i></div>
+                            </div>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+
+			<div class="swiper rasta-thumb-swiper">
+				<div class="swiper-wrapper">
+					<?php foreach ( $settings['slides'] as $slide ) : 
+                        $video_url = !empty($slide['video_url']['url']) ? $slide['video_url']['url'] : '';
+                        $thumb_url = '';
+
+                        if ( preg_match('%(?:youtube\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=|shorts/)|youtu\.be/)([^"&?/\s]{11})%i', $video_url, $match) ) {
+                            $thumb_url = "https://img.youtube.com/vi/{$match[1]}/maxresdefault.jpg";
+                        } else {
+                            $thumb_url = !empty($slide['cover_image']['url']) ? $slide['cover_image']['url'] : \Elementor\Utils::get_placeholder_image_src();
+                        }
+                    ?>
+						<div class="swiper-slide">
+							<img src="<?php echo esc_url( $thumb_url ); ?>" alt="Thumb" loading="lazy">
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
 }

@@ -1,8 +1,104 @@
-.mvc-swiper { padding: 60px 0; }
-.swiper-slide { width: 320px; }
-.mvc-video { position: relative; border-radius: 20px; overflow: hidden; background: #000; cursor: pointer; transform: scale(0.85); transition: all 0.4s ease; }
-.swiper-slide-active .mvc-video { transform: scale(1); }
-.swiper-slide-prev .mvc-video, .swiper-slide-next .mvc-video { opacity: 0.6; }
-.mvc-thumb { width: 100%; height: 250px; object-fit: cover; display: block; }
-.mvc-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: rgba(0,0,0,0.6); border-radius: 50%; color: #fff; font-size: 24px; display: flex; align-items: center; justify-content: center; }
-.mvc-video iframe { width: 100%; height: 250px; border: none; }
+.rasta-carousel-wrapper {
+    width: 100%;
+    overflow: hidden;
+    padding: 20px 0;
+}
+
+/* Main 3D Slider */
+.rasta-main-swiper {
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+.rasta-main-swiper .swiper-slide {
+    background-position: center;
+    background-size: cover;
+    width: 600px;
+    /* Width of the active center slide */
+    max-width: 80%;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    /* Prevents clicking issues with Swiper 3D shadows */
+    z-index: 1;
+}
+
+.rasta-main-swiper .swiper-slide-active {
+    z-index: 5;
+}
+
+.rasta-video-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    /* Black background while iframe loads */
+    border-radius: 12px;
+}
+
+.rasta-video-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    transition: opacity 0.3s ease;
+}
+
+/* Play Button Styling */
+.rasta-video-card .play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(43, 43, 133, 0.9);
+    color: #fff;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+.rasta-video-card .play-btn:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(43, 43, 133, 1);
+}
+
+/* Thumbnail Slider */
+.rasta-thumb-swiper {
+    box-sizing: border-box;
+    padding: 10px 0 !important;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.rasta-thumb-swiper .swiper-slide {
+    width: 20%;
+    height: auto;
+    aspect-ratio: 16/9;
+    opacity: 0.5;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.rasta-thumb-swiper .swiper-slide-thumb-active {
+    opacity: 1;
+    border: 2px solid #000;
+}
+
+.rasta-thumb-swiper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
