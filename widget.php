@@ -124,7 +124,11 @@ class Rasta_Video_Carousel_Widget extends \Elementor\Widget_Base {
 						<div class="swiper-slide">
                             <div class="rasta-video-card lazy-video-facade" data-iframe="<?php echo esc_url($iframe_src); ?>">
                                 <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $slide['video_title'] ); ?>" loading="lazy">
-                                <div class="play-btn"><i class="eicon-play"></i></div>
+                                <div class="play-btn">
+                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px; fill: white; margin-left: 4px;">
+                                        <path d="M10 8 L26 16 L10 24 Z"></path>
+                                    </svg>
+                                </div>
                             </div>
 						</div>
 					<?php endforeach; ?>
